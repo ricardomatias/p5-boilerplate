@@ -137,6 +137,7 @@ sketch.draw(function()  {
 
 	// VISUALS
 	background(backgroundColor);
+	noStroke();
 
 	presets.draw('simple', function() {
 		var bassEnergy = fft.getEnergy('bass'),
