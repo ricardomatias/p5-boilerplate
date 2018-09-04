@@ -1,9 +1,29 @@
 'use strict';
 
-/* exported setup draw windowResized */
+/* exported preload setup draw windowResized */
 
-var presets = new PresetsManager(),
-		eventBus = new EventBus();
+function test() {
+	var fourByfour = new Uint8ClampedArray(16),
+			num = 0;
+
+	for (var i = 0; i < 4; i++) {
+		for (var j = 0; j < 4; j++) {
+			fourByfour[num] = num;
+			num++;
+		}
+	}
+	console.log(fourByfour);
+
+	var table = new Tabelle(fourByfour, 1);
+
+	table.shiftRow(3, -0.5);
+
+	console.log(fourByfour);
+}
+
+test();
+
+var presets = new PresetsManager();
 
 var sketch = new Sketch({
 	colors: [
@@ -15,58 +35,40 @@ var sketch = new Sketch({
 	]
 });
 
+sketch.preload(function() {
+	// REGISTER PRESETS
+	presets.register('simple', {
+		image: loadImage('assets/img/space-odyssey.jpg')
+	});
+});
+
 sketch.setup(function() {
 	createCanvas(windowWidth, windowHeight);
 
 	// SETUP VARIABLES
-	this.SAMPLE_AMOUNT = 128;
-
 	this.setNewColorScheme();
 
-	// SETUP PEAKDETECT
-	this.peakDetect = new p5.PeakDetect(20, 4000, 0.05);
+	presets.setup('simple', function(defaults) {
+		var img = defaults.image,
+				imageWidth = img.width,
+				imageHeight = img.height;
 
-	// SETUP MIC
-	this.mic = new p5.AudioIn();
-	this.mic.start();
+		img.loadPixels();
 
-	// TEMPO
-	this.detector = new BPMDetector(eventBus, sampleRate());
-	this.masterClock = new MasterClock(eventBus, getAudioContext());
+		var halfImage = Math.floor(4 * img.width * img.height/2);
 
-	eventBus.on('bpm-detector.tempo', function(payload) {
-		var tempo = payload.tempo;
-
-		if (!this.masterClock.isRunning) {
-			this.masterClock.start(tempo);
+		for (var i = 0; i < halfImage; i++) {
+			img.pixels[i + halfImage] = img.pixels[i];
 		}
-	}, this);
 
-	eventBus.on('bpm-detector.reset', function() {
-		this.masterClock.stop();
-	}, this);
+		img.updatePixels();
 
-	eventBus.on('bpm-detector.sync', function(payload) {
-		this.masterClock.sync(payload.interval, payload.time);
-	}, this);
 
-	eventBus.on('master-clock.tick', function(payload) {
-		if (payload.tick === 0) {
-			presets.selectRandom();
-		}
+		defaults.imageWidth = imageWidth;
+		defaults.imageHeight = imageHeight;
+
+		console.log(defaults);
 	});
-
-	// SETUP PRESETS
-	presets.register('simple', {});
-
-	presets.setup([ 'simple' ], function(defaults) {
-		// SETUP FFT ANALYSIS
-		this.fft = new p5.FFT(defaults.smoothing, this.SAMPLE_AMOUNT);
-
-		this.fft.setInput(this.mic);
-
-		this.detector.begin();
-	}, this);
 
 	presets.select('simple');
 
@@ -113,59 +115,36 @@ sketch.setup(function() {
 			action: function() {
 				this.takeScreenshot(presets.getActiveName());
 			}
-	}]);
-});
+		}]);
+	});
 
-sketch.draw(function()  {
-	var halfWidth = windowWidth / 2,
-			halfHeight = windowHeight / 2,
-			backgroundColor = this.backgroundColor,
-			fillColor = this.fillColor;
+	sketch.draw(function()  {
+		var halfWidth = windowWidth / 2,
+				halfHeight = windowHeight / 2,
+				backgroundColor = this.backgroundColor,
+				fillColor = this.fillColor;
 
-	var fft = this.fft;
+		// VISUALS
+		// background(fillColor);
+		// noStroke();
 
-	fft.analyze();
+		presets.draw('simple', function(defaults) {
+			image(defaults.image, 10, 10);
+		}, this);
+	});
 
-	// PEAKDETECT ANALYSIS
-	this.peakDetect.update(fft);
-
-	if (this.peakDetect.isDetected) {
-		this.detector.controlPeakThreshold(this.peakDetect);
-
-		this.detector.trackPeak();
+	function preload() {
+		sketch.preload();
 	}
 
-	// VISUALS
-	background(backgroundColor);
-	noStroke();
+	function setup() {
+		sketch.setup();
+	}
 
-	presets.draw('simple', function() {
-		var bassEnergy = fft.getEnergy('bass'),
-				midEnergy = fft.getEnergy('mid'),
-				trebleEnergy = fft.getEnergy('treble');
+	function draw() {
+		sketch.draw();
+	}
 
-		fill(this.toRGB(fillColor, bassEnergy));
-
-		rect(0, 0, halfWidth, windowHeight);
-
-		fill(this.toRGB(fillColor, trebleEnergy));
-
-		rect(halfWidth, 0, windowWidth, windowHeight);
-
-		fill(this.toRGB(fillColor, midEnergy));
-
-		rect(halfWidth / 2, halfHeight / 2, windowWidth - halfWidth, windowHeight - halfHeight);
-	}, this);
-});
-
-function setup() {
-	sketch.setup();
-}
-
-function draw() {
-	sketch.draw();
-}
-
-function windowResized() {
-	resizeCanvas(windowWidth, windowHeight);
-}
+	function windowResized() {
+		resizeCanvas(windowWidth, windowHeight);
+	}

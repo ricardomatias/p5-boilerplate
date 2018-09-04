@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<title>p5-boilerplate</title>
+	<title>melting</title>
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
@@ -41,25 +41,38 @@
 		<img src="assets/img/github-link.png" alt="GitHub Logo">
 	</a>
 
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.8/p5.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.8/addons/p5.sound.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.13/p5.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.13/addons/p5.sound.min.js"></script>
 	<!-- <script src="assets/js/dat.gui.min.js"></script>
 	<script src="assets/js/stats.min.js"></script> -->
-	<script type="text/javascript">
-		function loadScript(file, onLoad) {
+	<script type="text/javascript" src="src/helpers.js"></script>
+	<script type="text/javascript" src="src/eventBus.js"></script>
+	<script type="text/javascript" src="src/presets-manager.js"></script>
+	<script type="text/javascript" src="src/master-clock.js"></script>
+	<script type="text/javascript" src="src/agent.js"></script>
+	<script type="text/javascript" src="src/bpm-detector.js"></script>
+	<script type="text/javascript" src="src/sketch.js"></script>
+	<script type="text/javascript" src="src/tabelle.js"></script>
+	<script type="text/javascript" src="src/index.js"></script>
+	<!-- <script type="text/javascript">
+		function loadScript(file, isAsync, onLoad) {
       var scripts = document.getElementsByTagName('script'),
 					lastScript = scripts[scripts.length - 1];
 
       var newScript = document.createElement('script');
 
 			newScript.src = 'src/' +  file + '.js';
-      lastScript.parentNode.insertBefore(newScript, lastScript);
+			newScript.async = isAsync;
+			newScript.type = 'text/javascript'
+      lastScript.parentNode.appendChild(newScript, lastScript);
 
 			newScript.onLoad = onLoad || function() {};
 
       newScript.onError = function() {
         console.error('unable to load script: ' + file);
       }
+
+			console.log(scripts);
     }
 
 		// SCRIPTS TO LOAD
@@ -73,9 +86,15 @@
 			'sketch',
 			'index'
 		].forEach(function(script) {
-		  loadScript(script);
+			var isAsync = false;
+
+			if (script === 'index') {
+				isAsync = true;
+			}
+
+		  loadScript(script, isAsync);
 		});
-	</script>
+	</script> -->
 	<script type="text/javascript">
 		(function() {
 			window.addEventListener('touchstart', function(evt) {

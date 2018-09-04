@@ -8,6 +8,19 @@ function Sketch(options) {
 	this._colors = options.colors;
 }
 
+Sketch.prototype.preload = function(fn) {
+	if (fn) {
+		this.__preload = fn.bind(this);
+	} else {
+
+		if (!this.__preload) {
+			throw new Error('need to define a "preload" function');
+		}
+
+		this.__preload();
+	}
+};
+
 Sketch.prototype.setup = function(fn) {
 	if (fn) {
 		this.__setup = fn.bind(this);

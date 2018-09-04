@@ -11,6 +11,10 @@ PresetsManager.prototype._runSetup = function() {
   var preset = this._active,
       defaults = this._defaults[preset];
 
+  if (preset && !this._setups[preset]) {
+    throw new Error('Presets setup has to be done before selection.');
+  }
+
   if (this._setups[preset]) {
     this._setups[preset](defaults);
   }
@@ -102,6 +106,10 @@ PresetsManager.prototype.setup = function(presets, fn, that) {
  */
 PresetsManager.prototype.draw = function(name, fn, that) {
   var presets;
+
+  if (!this._active) {
+    throw new Error('No preset selected. Won\'t be drawing anything today.');
+  }
 
   if (Array.isArray(name)) {
     presets = name;
